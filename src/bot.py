@@ -6,7 +6,7 @@ import os
 
 # EXTENSIONS
 bot = lightbulb.BotApp(token=os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_MEMBERS)
-bot.load_extensions("openai")
+bot.load_extensions("ai")
 
 
 # Ping Message
