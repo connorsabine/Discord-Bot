@@ -1,3 +1,4 @@
+import hikari
 import lightbulb
 from constants import NORMAL_COLOR
 

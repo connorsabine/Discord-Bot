@@ -16,6 +16,7 @@ afinn = "^0.1"
 miru = "^0.2.0"
 "lavaplay.py" = "^1.0.12-alpha.0"
 hikari-miru = "^3.1.2"
+replit = "^3.3.1"
 
 [tool.poetry.dev-dependencies]
 

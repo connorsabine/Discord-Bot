@@ -7,13 +7,15 @@ import os
 # EXTENSIONS
 bot = lightbulb.BotApp(token=os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_MEMBERS)
 
+bot.load_extensions("db.appenduser")
+bot.load_extensions("db.appendguild")
+
 bot.load_extensions("ext.ai.text")
 bot.load_extensions("ext.ai.image")
 
 bot.load_extensions("ext.help")
 # bot.load_extensions("ext.music")
 bot.load_extensions("ext.color")
-# bot.load_extensions("ext.onbotjoin")
 bot.load_extensions("ext.sentiment")
 bot.load_extensions("ext.giphy")
 

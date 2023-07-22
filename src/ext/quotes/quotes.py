@@ -2,14 +2,11 @@ from constants import QUOTE_COLOR, FAILED_COLOR
 import lightbulb
 import hikari
 import random
-import sqlite3
+from replit import db
 
 
 # INIT
 plugin = lightbulb.Plugin("quotes")
-database = sqlite3.connect("bot.db")
-cursor = database.cursor()
-
 
 
 # REQUIRED FUNCTIONS
@@ -18,7 +15,6 @@ def load(bot):
 
 def unload(bot):
     bot.remove_plugin(plugin)
-
 
 
 # Quote Command Group
