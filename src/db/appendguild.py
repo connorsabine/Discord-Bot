@@ -21,6 +21,9 @@ async def join(event: hikari.GuildJoinEvent):
     str(event.guild_id): {
       "SETTINGS": {
         "AI_ALWAYS_ON": False
-      }
+      },
+      "CONTEXT_HISTORY": [
+        
+      ]
     }
   }

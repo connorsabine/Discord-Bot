@@ -10,8 +10,7 @@ bot = lightbulb.BotApp(token=os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL_
 bot.load_extensions("db.appenduser")
 bot.load_extensions("db.appendguild")
 
-bot.load_extensions("ext.ai.text")
-bot.load_extensions("ext.ai.image")
+bot.load_extensions("ext.ai.chatbot")
 
 bot.load_extensions("ext.help")
 # bot.load_extensions("ext.music")
