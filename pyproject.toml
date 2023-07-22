@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "repl_nix_Chatter-Bot"
+version = "0.1.0"
+description = ""
+authors = ["Connor Sabine <connorsabine@icloud.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+openai = "^0.27.8"
+hikari = "^2.0.0-alpha.120"
+hikari-lightbulb = "^2.3.3"
+lavaplayer = "^1.0.11-alpha.0"
+pytz = "^2023.3"
+sympy = "^1.12"
+afinn = "^0.1"
+miru = "^0.2.0"
+"lavaplay.py" = "^1.0.12-alpha.0"
+hikari-miru = "^3.1.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
