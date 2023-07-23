@@ -3,7 +3,7 @@ import lightbulb
 import os
 import openai
 from replit import db
-from constants import BOT_UID
+from constants import BOT_UID, OPENAI_TOKEN_LIMIT
 
 # INIT
 plugin = lightbulb.Plugin("chatbot")
@@ -36,8 +36,17 @@ async def reset(ctx: lightbulb.Context) -> None:
 @lightbulb.command("ask", "Asks a Question to the Chatbot")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def ask(ctx: lightbulb.Context) -> None:
-    response = openai.Completion.create(engine="text-davinci-003", prompt=ctx.options.prompt, max_tokens=200, temperature=0)
-    await ctx.respond(response.choices[0].text.strip())
+    response = openai.Completion.create(engine="text-davinci-003", prompt=ctx.options.prompt, max_tokens=OPENAI_TOKEN_LIMIT, temperature=0)
+    text = response.choices[0].text.strip()
+    if len(text) > 1950:
+        fileName = "src/ext/ai/txtdumps/" + ctx.options.prompt + ".txt"
+        f = open(fileName, "w")
+        f.write(text)
+        f.close()
+        await ctx.respond(hikari.File(fileName))
+        os.remove(fileName)
+    else:
+        await ctx.respond(text)
 
 @chatbot.child
 @lightbulb.option("prompt", "The Prompt")
@@ -72,8 +81,17 @@ async def message_event(event):
                     newDict[key] = dict[key]
                 context.append(newDict)
             try:
-                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=5000)
-                await plugin.app.rest.create_message(event.channel_id, response.choices[0].message.content.strip())
+                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=OPENAI_TOKEN_LIMIT)
+                text = response.choices[0].message.content.strip()
+                if len(text) > 1950:
+                    fileName = "src/ext/ai/txtdumps/" + content + ".txt"
+                    f = open(fileName, "w")
+                    f.write(text)
+                    f.close()
+                    await plugin.app.rest.create_message(event.channel_id, hikari.File(fileName))
+                    os.remove(fileName)
+                else:
+                    await plugin.app.rest.create_message(event.channel_id, text)
                 db["CHANNEL_DATA"][str(event.channel_id)].append({"role":"assistant", "content":response.choices[0].message.content.strip()})
             except:
                 await plugin.app.rest.create_message(event.channel_id, "To Avoid Large API Fees, Chatter Bot will Restart this Thread with no Historical Context. (Err: MAX-TOKEN-REACHED)")
@@ -93,8 +111,17 @@ async def message_event(event):
                     newDict[key] = dict[key]
                 context.append(newDict)
             try:
-                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=5000)
-                await plugin.app.rest.create_message(event.channel_id, response.choices[0].message.content.strip())
+                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=OPENAI_TOKEN_LIMIT)
+                text = response.choices[0].message.content.strip()
+                if len(text) > 1950:
+                    fileName = "src/ext/ai/txtdumps/" + content + ".txt"
+                    f = open(fileName, "w")
+                    f.write(text)
+                    f.close()
+                    await plugin.app.rest.create_message(event.channel_id, hikari.File(fileName))
+                    os.remove(fileName)
+                else:
+                    await plugin.app.rest.create_message(event.channel_id, text)
                 db["GUILD_DATA"][str(event.guild_id)]["CONTEXT_HISTORY"].append({"role":"assistant", "content":response.choices[0].message.content.strip()})
             except:
                 await plugin.app.rest.create_message(event.channel_id, "To Avoid Large API Fees, Chatter Bot will Restart with no Historical Context. (Err: MAX-TOKEN-REACHED)")
