@@ -272,3 +272,23 @@ EMOJI_CODES = {
         "z": "<:gz:1114256050850377778>",
     },
 }
+
+
+# RPG
+# {
+#   "name":"",
+#   "hp":0,
+#   "maxhp":0,
+#   "hunger":0,
+#   "attack":0,
+#   "defense":0,
+#   "critchance":0,
+#   "level":0,
+#   "xp":0,
+#   "xpmult":0,
+#   "gold":0,
+#   "goldmult":0,
+#   "mode":0,
+#   "inventory":{},
+#   "enemy":None
+# }

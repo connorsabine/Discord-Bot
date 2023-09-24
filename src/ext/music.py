@@ -3,7 +3,7 @@ import hikari
 import lavaplay
 import miru
 import asyncio
-from constants import FAILED_COLOR, NORMAL_COLOR
+from constants import FAILED_COLOR, NORMAL_COLOR, BOT_UID
 
 # INIT
 plugin = lightbulb.Plugin("music")
@@ -15,16 +15,15 @@ node = lavalink.create_node(
     port=443,
     password="root",
     ssl=True,
-    user_id=0,
+    user_id=BOT_UID
 )
 
 # LISTENERS
 @plugin.listener(hikari.StartedEvent)
 async def started_event(event):
     miru.install(plugin.app)
-    node.set_event_loop(asyncio.get_event_loop())
-    node.user_id = plugin.app.get_me().id
     node.connect()
+    node.set_event_loop(asyncio.get_event_loop())
 
 @plugin.listener(hikari.VoiceStateUpdateEvent)
 async def voice_state_update(event: hikari.VoiceStateUpdateEvent):

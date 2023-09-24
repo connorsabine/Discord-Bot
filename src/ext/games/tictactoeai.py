@@ -15,6 +15,10 @@ def load(bot):
 def unload(bot):
     bot.remove_plugin(plugin)
 
+@plugin.listener(hikari.StartedEvent)
+async def started_event(event):
+    miru.install(plugin.app)
+
 
 class TicTacToeButton(miru.Button):
     def __init__(self, row: int, col: int):

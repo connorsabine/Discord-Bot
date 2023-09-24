@@ -4,15 +4,11 @@ import enum
 import random
 import sys
 from copy import deepcopy
-import sqlite3
 from constants import FAILED_COLOR, SUCCESS_COLOR, NORMAL_COLOR, RPG_INVENTORY, RPG_ENEMY_TO_LOOT
-import json
-
+from replit import db
 
 # INIT
 plugin = lightbulb.Plugin("rpg")
-database = sqlite3.connect("bot.db")
-cursor = database.cursor()
 
 
 # REQUIRED FUNCTIONS
@@ -23,20 +19,12 @@ def unload(bot):
     bot.remove_plugin(plugin)
 
 
-
 def strToClass(classname):
     return getattr(sys.modules[__name__], classname)
 
 def loadCharacter(userid):
-    data = cursor.execute(f"SELECT * FROM RPGDATA WHERE userid={userid}").fetchone()
-    if data[15] == None:
-        enemy = None
-    else:
-        enemy = json.loads(data[15])
-
-    inventory = json.loads(data[14])
-
-    return Character(data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13], inventory, enemy, userid)
+    data = db["USER_DATA"][str(userid)]["RPG"]
+    return Character(data["name"], data["hp"], data["maxhp"], data["hunger"], data["attack"], data["defense"], data["critchance"], data["level"], data["xp"], data["xpmult"], data["gold"], data["goldmult"], data["mode"], data["inventory"], data["enemy"], userid)
 
 class GameMode(enum.IntEnum):
     ADVENTURE = 1
@@ -96,17 +84,11 @@ class Character(Actor):
         character = deepcopy(vars(self))
         if self.enemy != None:
             character["inventory"] = deepcopy(self.inventory)
-            jsonInventory = json.dumps(character["inventory"])
             character["enemy"] = deepcopy(vars(self.enemy))
-            jsonEnemy = json.dumps(character["enemy"])
-            parameters = (character['name'], character['hp'], character['maxhp'], character['hunger'], character['attack'], character['defense'], character['critchance'], character['level'], character['xp'], character['xpmult'], character['gold'], character['goldmult'], character['mode'], jsonInventory, jsonEnemy, character["userid"])
-            cursor.execute("UPDATE RPGDATA SET name=?, hp=?, maxhp=?, hunger=?, attack=?, defense=?, critchance=?, level=?, xp=?, xpmult=?, gold=?, goldmult=?, mode=?, inventory=?, enemy=? WHERE userid=?", parameters)
+            db["USER_DATA"][str(character["userid"])]["RPG"] = {"name":character['name'],"hp":character['hp'],"maxhp":character['maxhp'],"hunger":character['hunger'],"attack":character['attack'],"defense":character['defense'],"critchance":character['critchance'],"level":character['level'],"xp":character['xp'],"xpmult":character['xpmult'],"gold":character['gold'],"goldmult":character['goldmult'],"mode":character['mode'],"inventory":character["inventory"],"enemy":character["enemy"]}
         else:
             character["inventory"] = deepcopy(self.inventory)
-            jsonInventory = json.dumps(character["inventory"])
-            parameters = (character['name'], character['hp'], character['maxhp'], character['hunger'], character['attack'], character['defense'], character['critchance'], character['level'], character['xp'], character['xpmult'], character['gold'], character['goldmult'], character['mode'], jsonInventory, None, character["userid"])
-            cursor.execute("UPDATE RPGDATA SET name=?, hp=?, maxhp=?, hunger=?, attack=?, defense=?, critchance=?, level=?, xp=?, xpmult=?, gold=?, goldmult=?, mode=?, inventory=?, enemy=? WHERE userid=?", parameters)
-        database.commit()
+            db["USER_DATA"][str(character["userid"])]["RPG"] = {"name":character['name'],"hp":character['hp'],"maxhp":character['maxhp'],"hunger":character['hunger'],"attack":character['attack'],"defense":character['defense'],"critchance":character['critchance'],"level":character['level'],"xp":character['xp'],"xpmult":character['xpmult'],"gold":character['gold'],"goldmult":character['goldmult'],"mode":character['mode'],"inventory":character["inventory"],"enemy":None}
 
     def hunt(self):
         while True:
@@ -228,10 +210,7 @@ class Character(Actor):
         return (True, self.level)
 
     def die(self, userid):
-        player = cursor.execute("SELECT name FROM RPGDATA WHERE userid={}".format(userid)).fetchone()
-        if player != None:
-            cursor.execute("DELETE FROM RPGDATA WHERE userid={}".format(userid))
-            database.commit()
+        db["USER_DATA"][str(userid)]["RPG"] = None
       
 
 class Enemy(Actor):
@@ -406,14 +385,13 @@ async def rpg(ctx: lightbulb.Context) -> None:
 @lightbulb.command(name="create", description="Creates a Character")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def create(ctx: lightbulb.Context, name = None):
-    player = cursor.execute("SELECT * FROM RPGDATA WHERE userid={}".format(ctx.author.id)).fetchone()
+    player = db["USER_DATA"][str(ctx.author.id)]["RPG"]
     if player == None:
         if ctx.options.name == None:
             name = ctx.author.username
         else:
             name = ctx.options.name
 
-        jsonInventory = json.dumps(RPG_INVENTORY)
         character = Character(**{
             "name": name,
             "hp": 20,
@@ -433,8 +411,7 @@ async def create(ctx: lightbulb.Context, name = None):
             "userid": ctx.author.id
         })
 
-        cursor.execute(f"INSERT INTO RPGDATA VALUES(?, ?, 20, 20, 10, 2, 1, 10, 1, 0, 1, 0, 1, ?, ?, ?)", (ctx.author.id, name, character.mode, jsonInventory, None))
-        database.commit()
+        db["USER_DATA"][str(ctx.author.id)]["RPG"] = {"name":name,"hp":20,"maxhp":20,"hunger":10,"attack":2,"defense":1,"critchance":10,"level":1,"xp":0,"xpmult":1,"gold":0,"goldmult":1,"mode":GameMode.ADVENTURE,"inventory":RPG_INVENTORY,"enemy":None}
 
         embed = statusEmbed(ctx, character, True)
         await ctx.respond(embed=embed)

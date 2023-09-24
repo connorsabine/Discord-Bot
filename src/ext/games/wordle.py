@@ -21,7 +21,10 @@ def unload(bot):
 # LISTENERS
 @plugin.listener(hikari.MessageCreateEvent)
 async def message(event):
-    await processGuess(event.message)
+    try:
+      await processGuess(event.message)
+    except:
+      return
 
 # COMMANDS
 @plugin.command
@@ -79,7 +82,7 @@ def generatePuzzleEmbed(user: hikari.User, puzzleid: int) -> hikari.Embed:
     embed = hikari.Embed(title=f"Wordle (ID: {puzzleid})", description="\n".join(["\N{WHITE LARGE SQUARE}" * 5] * 6))
     embed.color = NORMAL_COLOR
     embed.set_author(name=user.username, icon=user.display_avatar_url)
-    embed.set_footer(text="To Play, Use the Command /PLAY!\nTo Guess, Reply to this Message with a Word")
+    embed.set_footer(text="To Play, Use the Command /WORDLE!\nTo Guess, Reply to this Message with a Word")
     return embed
 
 
@@ -136,12 +139,12 @@ async def processGuess(message: hikari.Message) -> bool:
     guess = re.sub(r"<@!?\d+>", "", guess).strip()
 
     if (embed.author.name != message.author.username or embed.author.icon != message.author.display_avatar_url):
-        await message.respond(embed=hikari.Embed(title="Start a new Game with /PLAY!", color=FAILED_COLOR))
+        await message.respond(embed=hikari.Embed(title="Start a new Game with /WORDLE!", color=FAILED_COLOR))
         await message.delete()
         return
 
     if isGameOver(embed):
-        await message.respond(embed=hikari.Embed(title="This Game Ended, Start a new Game with /PLAY", color=FAILED_COLOR))
+        await message.respond(embed=hikari.Embed(title="This Game Ended, Start a new Game with /WORDLE", color=FAILED_COLOR))
         await message.delete()
         return
 
