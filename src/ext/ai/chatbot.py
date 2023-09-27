@@ -13,15 +13,10 @@ COMPLETION_MODEL = "gpt-3.5-turbo-16k"
 # INIT
 plugin = lightbulb.Plugin("chatbot")
 
-# OPENAI INIT
-openai.organization = "org-gdi3giKqaf4bCDzRdeTOwEpy"
-openai.api_key = "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"
-
-# PINECONE INIT
-pine = dict()
-pine["api_key"] = "09da0409-864b-4760-a8a7-bd6f8458507f"
-pine["env"] = "gcp-starter"
-pinecone.init(api_key=pine["api_key"], environment=pine["env"])
+# OPENAI/PINECONE INIT
+openai.organization = os.environ["OPENAI_ORG"]
+openai.api_key = os.environ["OPENAI_API_KEY"]
+pinecone.init(api_key=os.environ["PINECONE_API_KEY"], environment=os.environ["PINECONE_ENV"])
 
 # REQUIRED FUNCTIONS
 def load(bot):
