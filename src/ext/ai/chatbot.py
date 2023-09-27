@@ -1,14 +1,27 @@
+from constants import BOT_UID, OPENAI_TOKEN_LIMIT
+import openai
 import hikari
 import lightbulb
 import os
-import openai
-from replit import db
-from constants import BOT_UID, OPENAI_TOKEN_LIMIT
+import pinecone
+from tqdm.auto import tqdm
+
+# PARAMETERS
+EMBED_MODEL = "text-embedding-ada-002"
+COMPLETION_MODEL = "gpt-3.5-turbo-16k"
 
 # INIT
 plugin = lightbulb.Plugin("chatbot")
-openai.organization = os.getenv("OPENAI_ORG")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# OPENAI INIT
+openai.organization = "org-gdi3giKqaf4bCDzRdeTOwEpy"
+openai.api_key = "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"
+
+# PINECONE INIT
+pine = dict()
+pine["api_key"] = "09da0409-864b-4760-a8a7-bd6f8458507f"
+pine["env"] = "gcp-starter"
+pinecone.init(api_key=pine["api_key"], environment=pine["env"])
 
 # REQUIRED FUNCTIONS
 def load(bot):
@@ -17,104 +30,94 @@ def load(bot):
 def unload(bot):
     bot.remove_plugin(plugin)
 
-# db management
-server_list = ["971040974899929159", "1120451952971612261", "1114255533071937577", "1114256641471299584"]
-for server in server_list:
-  db["GUILD_DATA"][server] = {"CONTEXT_HISTORY":[]}
+# HELPER FUNCTIONS
+def get_embed(text):
+    return openai.Embedding.create(input=text, engine=EMBED_MODEL)["data"][0]["embedding"]
 
-@plugin.command
-@lightbulb.command("chatbot", "Chatbot Base Command")
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def chatbot(ctx: lightbulb.Context) -> None:
-    await ctx.respond("Chatbot Invoked")
+def get_response(query: str, context: [dict]) -> str:
+    context.append(get_message("user", query))
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=OPENAI_TOKEN_LIMIT)
+    text = response.choices[0].message.content.strip()
+    return text
 
-@chatbot.child
-@lightbulb.command("reset", "Resets the Chatbot Outside of Threads")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def reset(ctx: lightbulb.Context) -> None:
-    db["GUILD_DATA"][str(ctx.guild_id)]["CONTEXT_HISTORY"] = []
-    await ctx.respond("Chatbot Reset!")
+def get_message(role: str, content: str) -> dict:
+    return {"role": role, "content": content}
 
-@chatbot.child
-@lightbulb.option("prompt", "The Question")
-@lightbulb.command("ask", "Asks a Question to the Chatbot")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def ask(ctx: lightbulb.Context) -> None:
-    response = openai.Completion.create(engine="text-davinci-003", prompt=ctx.options.prompt, max_tokens=OPENAI_TOKEN_LIMIT, temperature=0)
-    text = response.choices[0].text.strip()
-    if len(text) > 1950:
-        fileName = "src/ext/ai/txtdumps/" + ctx.options.prompt + ".txt"
-        f = open(fileName, "w")
-        f.write(text)
-        f.close()
-        await ctx.respond(hikari.File(fileName))
-        os.remove(fileName)
-    else:
-        await ctx.respond(text)
+def get_messages(role: str, contents: [str]) -> [dict]:
+    context = []
+    for content in contents:
+        context.append(get_message(role, content))
+    return context
 
-  
+def get_index(index: str) -> str:
+    index = str(index)
+    if index not in pinecone.list_indexes():
+        # create sample embedding
+        embed = get_embed(["Sample document text goes here","there will be several phrases in each batch"])
+
+        # create index
+        pinecone.create_index(
+            index,
+            dimension=len(embed),
+            metric='cosine',
+            metadata_config={'indexed': ['source', 'id']}
+        )
+
+        # log creation of index
+        print(f"index {index} created")
+
+    return index
+    
+def search(index, line, n=3):
+    embed = get_embed(line)
+    results = pinecone.index_query(index, embed, top_k=n)
+    return results
+
+def upsert_vector(index: str, line: str):
+    index = pinecone.Index(get_index(index))
+    embed = get_embed(line)
+    meta = {'text': line}
+    index.upsert(vectors=[{
+        'id':'vec1', 
+        'values':embed, 
+        'metadata':meta}])
+    
+def batch_upsert_vector(index: str, data: [str], batch_size=32):
+    index = pinecone.Index(index)
+    for i in tqdm(range(0, len(data), batch_size)):
+        i_end = min(i+batch_size, len(data))
+        lines_batch = data[i: i+batch_size]
+        ids_batch = [str(n) for n in range(i, i_end)]
+        res = get_embed(lines_batch)
+        embeds = [record['embedding'] for record in res['data']]
+        meta = [{'text': line} for line in lines_batch]
+        to_upsert = zip(ids_batch, embeds, meta)
+        index.upsert(vectors=list(to_upsert))
+
+
 @plugin.listener(hikari.MessageCreateEvent)
 async def message_event(event):
-    if event.author_id == BOT_UID:
+
+    # add vector to index
+    if event.content != None:
+        upsert_vector(event.guild_id, event.content)
+    else:
         return
 
-    if event.content != None and f"<@{BOT_UID}> " in event.content:
-        content = event.content.replace(f"<@{BOT_UID}> ", "")
-        thread = plugin.app.cache.get_thread(event.channel_id)
-        if thread != None:
-            try:
-                db["CHANNEL_DATA"][str(event.channel_id)].append({"role":"user", "content":content})
-            except:
-                db["CHANNEL_DATA"][str(event.channel_id)] = [{"role":"user", "content":content}]
+    # respond to message if applicable
+    if f"<@{BOT_UID}> " in event.content:
+        query = event.content.replace(f"<@{BOT_UID}> ", "")
 
-            db["CHANNEL_DATA"][str(event.channel_id)] = [{"role":"user", "content":content}]
+        index = get_index(event.guild_id)
+        context = get_messages("assistant", search(index, query, n=3))
 
-            context = []
-            for dict in db["CHANNEL_DATA"].value[str(event.channel_id)].value:
-                newDict = {}
-                for key in dict:
-                    newDict[key] = dict[key]
-                context.append(newDict)
-            try:
-                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=OPENAI_TOKEN_LIMIT)
-                text = response.choices[0].message.content.strip()
-                if len(text) > 1950:
-                    fileName = "src/ext/ai/txtdumps/" + content + ".txt"
-                    f = open(fileName, "w")
-                    f.write(text)
-                    f.close()
-                    await plugin.app.rest.create_message(event.channel_id, hikari.File(fileName))
-                    os.remove(fileName)
-                else:
-                    await plugin.app.rest.create_message(event.channel_id, text)
-                db["CHANNEL_DATA"][str(event.channel_id)].append({"role":"assistant", "content":response.choices[0].message.content.strip()})
-            except:
-                await plugin.app.rest.create_message(event.channel_id, "To Avoid Large API Fees, Chatter Bot will Restart this Thread with no Historical Context. (Err: MAX-TOKEN-REACHED)")
-                db["CHANNEL_DATA"][str(event.channel_id)] = []
+        print("context retrieved")
+        print(context)
 
-      
-        else:
-            db["GUILD_DATA"][str(event.guild_id)]["CONTEXT_HISTORY"].append({"role":"user", "content":content})
-            context = []
-            for dict in db["GUILD_DATA"].value[str(event.guild_id)].value["CONTEXT_HISTORY"].value:
-                newDict = {}
-                for key in dict:
-                    newDict[key] = dict[key]
-                context.append(newDict)
-            try:
-                response = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=context, max_tokens=OPENAI_TOKEN_LIMIT)
-                text = response.choices[0].message.content.strip()
-                if len(text) > 1950:
-                    fileName = "src/ext/ai/txtdumps/" + content + ".txt"
-                    f = open(fileName, "w")
-                    f.write(text)
-                    f.close()
-                    await plugin.app.rest.create_message(event.channel_id, hikari.File(fileName))
-                    os.remove(fileName)
-                else:
-                    await plugin.app.rest.create_message(event.channel_id, text)
-                db["GUILD_DATA"][str(event.guild_id)]["CONTEXT_HISTORY"].append({"role":"assistant", "content":response.choices[0].message.content.strip()})
-            except:
-                await plugin.app.rest.create_message(event.channel_id, "To Avoid Large API Fees, Chatter Bot will Restart with no Historical Context. (Err: MAX-TOKEN-REACHED)")
-                db["GUILD_DATA"][str(event.guild_id)]["CONTEXT_HISTORY"] = []
-                  
+        await plugin.app.rest.create_message(event.channel_id, get_response(query, context))
+
+
+
+
+        
+
