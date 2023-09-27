@@ -110,9 +110,3 @@ async def message_event(event):
         print(context)
 
         await plugin.app.rest.create_message(event.channel_id, get_response(query, context))
-
-
-
-
-        
-
