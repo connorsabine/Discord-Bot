@@ -4,4 +4,4 @@ echo "Starting web server"
 python web.py &
 
 echo "Starting hikari bot"
-python main.py
+python src/main.py
