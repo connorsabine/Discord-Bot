@@ -14,4 +14,4 @@ COPY . ./
 # Install production dependencies.
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD exec python main.py
+CMD sh start.sh
