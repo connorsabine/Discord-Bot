@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source .env
+
 echo "Starting web server"
 python web.py &
 
