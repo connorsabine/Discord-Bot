@@ -3,7 +3,7 @@ import openai
 import hikari
 import lightbulb
 import pinecone
-from params import get_secret
+from secret import get_secret
 from tqdm.auto import tqdm
 
 # PARAMETERS

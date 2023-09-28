@@ -4,7 +4,6 @@ import random as rand
 from constants import BOT_UID, SUCCESS_COLOR, NORMAL_COLOR, FAILED_COLOR, EMOJI_CODES
 import re
 from typing import List, Optional
-from datetime import datetime, date
 
 # INIT
 plugin = lightbulb.Plugin("wordle")
@@ -28,36 +27,10 @@ async def message(event):
 
 # COMMANDS
 @plugin.command
-@lightbulb.command("wordle", "Play Wordle on Discord")
-@lightbulb.implements(lightbulb.SlashCommandGroup)
+@lightbulb.command("wordle", "Play Wordle!")
+@lightbulb.implements(lightbulb.SlashCommand)
 async def wordle(ctx: lightbulb.Context) -> None:
-    await ctx.respond("Wordle Invoked")
-
-@wordle.child
-@lightbulb.command("random", "Starts a Random Game of Wordle")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def random(ctx: lightbulb.Context) -> None:
     id = rand.randint(0, len(popularWords) - 1)
-    embed = generatePuzzleEmbed(ctx.author, id)
-    await ctx.respond(embed=embed)
-
-@wordle.child
-@lightbulb.option("id", "The ID of the Game")
-@lightbulb.command("id", "Starts a Game of Wordle Based on ID")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def byid(ctx: lightbulb.Context) -> None:
-    id = ctx.options.id
-    if id > 2990 or id < 0:
-        await ctx.respond("Please Enter a Valid ID (0-2990)")
-    else:
-        embed = generatePuzzleEmbed(ctx.author, id)
-        await ctx.respond(embed=embed)
-
-@wordle.child
-@lightbulb.command("daily", "Starts Daily Game of Wordle")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def daily(ctx: lightbulb.Context) -> None:
-    id = datetime.now().timetuple().tm_yday
     embed = generatePuzzleEmbed(ctx.author, id)
     await ctx.respond(embed=embed)
 

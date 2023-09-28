@@ -15,7 +15,7 @@ def unload(bot):
 
 # COMMANDS
 @plugin.command
-@lightbulb.command("coinflip", "Flips a Coin")
+@lightbulb.command("coinflip", "Flip a Coin!")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def coinflip(ctx: lightbulb.Context) -> None:
     if random.randrange(0, 2) == 1: 
