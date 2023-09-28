@@ -5,7 +5,7 @@
             "name": "Run Bot",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/bot.py",
+            "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "envFile": "${workspaceFolder}/.env"

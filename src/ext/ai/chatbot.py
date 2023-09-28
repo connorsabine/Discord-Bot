@@ -2,8 +2,8 @@ from constants import BOT_UID, OPENAI_TOKEN_LIMIT
 import openai
 import hikari
 import lightbulb
-import os
 import pinecone
+from params import get_secret
 from tqdm.auto import tqdm
 
 # PARAMETERS
@@ -14,9 +14,9 @@ COMPLETION_MODEL = "gpt-3.5-turbo-16k"
 plugin = lightbulb.Plugin("chatbot")
 
 # OPENAI/PINECONE INIT
-openai.organization = os.environ["OPENAI_ORG"]
-openai.api_key = os.environ["OPENAI_API_KEY"]
-pinecone.init(api_key=os.environ["PINECONE_API_KEY"], environment=os.environ["PINECONE_ENV"])
+openai.organization = get_secret("OPENAI_ORG")
+openai.api_key = get_secret("OPENAI_API_KEY")
+pinecone.init(api_key=get_secret("PINECONE_API_KEY"), environment=get_secret("PINECONE_ENV"))
 
 # REQUIRED FUNCTIONS
 def load(bot):
