@@ -8,7 +8,7 @@ def access_secret_version(secret_id, version_id="latest"):
     return response.payload.data.decode('UTF-8')
 
 def get_secret(name):
-    secret = os.environ(name)
+    secret = os.getenv(name)
     if secret == None:
         secret = access_secret_version(name)
 
