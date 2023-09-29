@@ -61,7 +61,9 @@ def get_index(index: str) -> str:
         # log creation of index
         print(f"index {index} created")
 
-    return index
+    # return index
+    return "971040974899929159"
+
     
 def search(index, line, n=3):
     embed = get_embed(line)
