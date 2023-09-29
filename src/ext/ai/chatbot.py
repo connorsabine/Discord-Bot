@@ -70,12 +70,12 @@ def search(index, line, n=3):
     results = pinecone.index_query(index, embed, top_k=n)
     return results
 
-def upsert_vector(index: str, line: str):
+def upsert_vector(index: str, id, line: str):
     index = pinecone.Index(get_index(index))
     embed = get_embed(line)
     meta = {'text': line}
     index.upsert(vectors=[{
-        'id':'vec1', 
+        'id':index + "-" + str(id), 
         'values':embed, 
         'metadata':meta}])
     
@@ -97,8 +97,7 @@ async def message_event(event):
 
     # add vector to index
     if event.content != None:
-        upsert_vector(event.guild_id, event.content)
-        print("vector upserted")
+        upsert_vector(event.guild_id, event.message_id, event.content)
     else:
         return
 
