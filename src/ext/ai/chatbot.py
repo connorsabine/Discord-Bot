@@ -45,6 +45,7 @@ def get_messages(role: str, contents: [str]) -> [dict]:
     return context
 
 def get_index(index: str) -> str:
+    return "971040974899929159"
     index = str(index)
     if index not in pinecone.list_indexes():
         # create sample embedding
@@ -61,8 +62,7 @@ def get_index(index: str) -> str:
         # log creation of index
         print(f"index {index} created")
 
-    # return index
-    return "971040974899929159"
+    return index
 
     
 def search(index, line, n=3):
