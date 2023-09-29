@@ -70,12 +70,13 @@ def search(index, line, n=3):
     results = pinecone.index_query(index, embed, top_k=n)
     return results
 
-def upsert_vector(index: str, id, line: str):
+def upsert_vector(index: str, message_id, line: str):
+    id = str(index) + "-" + str(message_id)
     index = pinecone.Index(get_index(index))
     embed = get_embed(line)
     meta = {'text': line}
     index.upsert(vectors=[{
-        'id':index + "-" + str(id), 
+        'id':id, 
         'values':embed, 
         'metadata':meta}])
     
