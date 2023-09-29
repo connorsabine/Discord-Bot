@@ -364,5 +364,3 @@ async def tictactoe(ctx: lightbulb.Context) -> None:
     embed = hikari.Embed(title="TicTacToe", description="⚔️ = Player vs Player \n 🤖 = AI vs Player", color = NORMAL_COLOR)
     view = SelectVersion(ctx.author)
     await ctx.respond(embed=embed, components=view.build())
-    
-

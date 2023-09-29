@@ -2,13 +2,13 @@ import hikari
 import lightbulb
 import os
 import openai
-from replit import db
 from constants import BOT_UID, OPENAI_TOKEN_LIMIT
+from secret import get_secret
 
 # INIT
-plugin = lightbulb.Plugin("imagine")
-openai.organization = os.getenv("OPENAI_ORG")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+plugin = lightbulb.Plugin("images")
+openai.organization = get_secret("OPENAI_ORG")
+openai.api_key = get_secret("OPENAI_API_KEY")
 
 # REQUIRED FUNCTIONS
 def load(bot):

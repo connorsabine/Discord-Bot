@@ -1,9 +1,8 @@
 import lightbulb
 import hikari
-from replit import db
 
 # INIT
-plugin = lightbulb.Plugin("appenduser")
+plugin = lightbulb.Plugin("adduser")
 
 
 # REQUIRED FUNCTIONS
