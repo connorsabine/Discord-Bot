@@ -98,6 +98,7 @@ async def message_event(event):
     # add vector to index
     if event.content != None:
         upsert_vector(event.guild_id, event.content)
+        print("vector upserted")
     else:
         return
 
