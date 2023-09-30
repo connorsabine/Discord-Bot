@@ -20,28 +20,23 @@ async def started_event(event):
     miru.install(plugin.app)
 
 class SelectVersion(miru.View):
-    def __init__(self, player: hikari.Member, channel) -> None:
-        self.player: hikari.Member = player
-        self.channel = channel
+    def __init__(self, channel, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.channel: hikari.GuildChannel = channel
 
     @miru.button(emoji="🤖", style=hikari.ButtonStyle.SUCCESS)
     async def ai(self, select: miru.Button, ctx: miru.Context) -> None:
-        embed = hikari.Embed(title="TicTacToe - It's Your Turn", color = NORMAL_COLOR)
+        embed = hikari.Embed(title="TicTacToe", description="It's Your Turn", color = NORMAL_COLOR)
         view = TicTacToeViewAI()
         proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
-        # proxy = await ctx.respond(embed=embed, components=view.build())
-        await view.start(await proxy.message())
+        await view.start(proxy)
 
     @miru.button(emoji="⚔️", style=hikari.ButtonStyle.SUCCESS)
     async def vs(self, button: miru.Button, ctx: miru.Context) -> None:
-        embed = hikari.Embed(title="TicTacToe - X's Turn", color = NORMAL_COLOR)
+        embed = hikari.Embed(title="TicTacToe", description="It's Your Turn", color = NORMAL_COLOR)
         view = TicTacToeViewVS()
         proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
-        await view.start(await proxy.message())
-
-    @miru.button(label="Stop", style=hikari.ButtonStyle.DANGER)
-    async def stop(self, button: miru.Button, ctx: miru.Context) -> None:
-        self.stop()
+        await view.start(proxy)
 
 
 # AI
@@ -52,7 +47,7 @@ class TicTacToeButtonAI(miru.Button):
         self.col: int = col
 
     async def callback(self, ctx: miru.Context) -> None:
-        if isinstance(self.view, TicTacToeViewAI) and self.view.player.id == ctx.user.id:
+        if isinstance(self.view, TicTacToeViewAI):
             view: TicTacToeViewAI = self.view
             value: int = view.board[self.row][self.col]
 
@@ -65,17 +60,17 @@ class TicTacToeButtonAI(miru.Button):
                 self.disabled = True
                 view.board[self.row][self.col] = -1
                 view.currentPlayer = "bot"
-                embed = hikari.Embed(title="TicTacToe - Bot Thinking...", color = NORMAL_COLOR)
+                embed = hikari.Embed(title="TicTacToe", description="Bot Thinking...", color = NORMAL_COLOR)
 
             gameState = view.checkGameState(view.board)
 
             if gameState is not None:
                 if gameState == "player":
-                    embed = hikari.Embed(title="TicTacToe - You Won!", color = SUCCESS_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="You Won!", color = SUCCESS_COLOR)
                 elif gameState == "bot":
-                    embed = hikari.Embed(title="TicTacToe - Bot Won!", color = FAILED_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="Bot Won!", color = FAILED_COLOR)
                 else:
-                    embed = hikari.Embed(title="TicTacToe - Tie!", color = NORMAL_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="Tie!", color = NORMAL_COLOR)
 
                 for button in view.children:
                     assert isinstance(button, miru.Button)
@@ -89,11 +84,11 @@ class TicTacToeButtonAI(miru.Button):
                 gameState = view.checkGameState(view.board)
                 if gameState is not None:
                     if gameState == "player":
-                        embed = hikari.Embed(title="TicTacToe - You Won!", color = SUCCESS_COLOR)
+                        embed = hikari.Embed(title="TicTacToe", description="You Won!", color = SUCCESS_COLOR)
                     elif gameState == "bot":
-                        embed = hikari.Embed(title="TicTacToe - Bot Won!", color = FAILED_COLOR)
+                        embed = hikari.Embed(title="TicTacToe", description="Bot Won!", color = FAILED_COLOR)
                     else:
-                        embed = hikari.Embed(title="TicTacToe - Tie!", color = NORMAL_COLOR)
+                        embed = hikari.Embed(title="TicTacToe", description="Tie!", color = NORMAL_COLOR)
 
                     for button in view.children:
                         assert isinstance(button, miru.Button)
@@ -101,15 +96,14 @@ class TicTacToeButtonAI(miru.Button):
                     view.stop()
 
                 else:
-                    embed = hikari.Embed(title="TicTacToe - It's Your Turn", color = NORMAL_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="It's Your Turn", color = NORMAL_COLOR)
 
             await ctx.edit_response(embed=embed, components=view.build())
     
 
 class TicTacToeViewAI(miru.View):
-    def __init__(self, player: hikari.Member, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.player: hikari.Member = player
         self.currentPlayer: str = "player"
 
         # Create Boards
@@ -130,7 +124,7 @@ class TicTacToeViewAI(miru.View):
             assert isinstance(item, miru.Button)
             item.disabled = True
 
-        embed = hikari.Embed(title="TicTacToe - Game Timed Out", color = FAILED_COLOR)
+        embed = hikari.Embed(title="TicTacToe", description="Game Timed Out", color = FAILED_COLOR)
         assert self.message is not None
         await self.message.edit(embed=embed, components=self.build())
 
@@ -266,24 +260,24 @@ class TicTacToeButtonVS(miru.Button):
                 self.disabled = True
                 view.board[self.row][self.col] = -1
                 view.currentPlayer = "O"
-                embed = hikari.Embed(title="TicTacToe - O's Turn", color = NORMAL_COLOR)
+                embed = hikari.Embed(title="TicTacToe", description="O's Turn", color = NORMAL_COLOR)
             else:
                 self.style = hikari.ButtonStyle.SUCCESS
                 self.label = "O"
                 self.disabled = True
                 view.board[self.row][self.col] = 1
                 view.currentPlayer = "X"
-                embed = hikari.Embed(title="TicTacToe - X's Turn", color = NORMAL_COLOR)
+                embed = hikari.Embed(title="TicTacToe", description="X's Turn", color = NORMAL_COLOR)
 
             gameState = view.checkGameState(view.board)
 
             if gameState is not None:
                 if gameState == "X":
-                    embed = hikari.Embed(title="TicTacToe - X Won!", color = SUCCESS_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="X Won!", color = SUCCESS_COLOR)
                 elif gameState == "O":
-                    embed = hikari.Embed(title="TicTacToe - O Won!", color = SUCCESS_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="O Won!", color = SUCCESS_COLOR)
                 else:
-                    embed = hikari.Embed(title="TicTacToe - Tie!", color = NORMAL_COLOR)
+                    embed = hikari.Embed(title="TicTacToe", description="Tie!", color = NORMAL_COLOR)
 
                 for button in view.children:
                     assert isinstance(button, miru.Button)
@@ -316,7 +310,7 @@ class TicTacToeViewVS(miru.View):
             assert isinstance(item, miru.Button)
             item.disabled = True
 
-        embed = hikari.Embed(title="TicTacToe - Game Timed Out", color = FAILED_COLOR)
+        embed = hikari.Embed(title="TicTacToe", description="Game Timed Out", color = FAILED_COLOR)
         assert self.message is not None
         await self.message.edit(embed=embed, components=self.build())
 
@@ -363,10 +357,9 @@ class TicTacToeViewVS(miru.View):
 @lightbulb.command("tictactoe", "Play TicTacToe!")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def tictactoe(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title="TicTacToe", description="⚔️ = Player vs Player \n 🤖 = AI vs Player", color = NORMAL_COLOR)
-    view = SelectVersion(ctx.author, ctx.channel_id)
-    # works with no params ?
+    embed = hikari.Embed(title="TicTacToe", description="🤖 -> Robot vs Player \n ⚔️ -> Player vs Player", color = NORMAL_COLOR)
+    view = SelectVersion(ctx.channel_id)
     resp = await ctx.respond(embed=embed, components=view)
     await view.start(await resp.message())
     await view.wait()
-    
+    await resp.delete()
