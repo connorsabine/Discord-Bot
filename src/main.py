@@ -1,11 +1,10 @@
 # IMPORT
 import hikari
 import lightbulb
-from secret import get_secret
-
+import os
 
 # EXTENSIONS
-bot = lightbulb.BotApp(token=get_secret("BOT_TOKEN"), intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_MEMBERS)
+bot = lightbulb.BotApp(token=os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_MEMBERS)
 bot.load_extensions("ext.ai.chatbot")
 bot.load_extensions("ext.games.wordle")
 bot.load_extensions("ext.games.tictactoe")

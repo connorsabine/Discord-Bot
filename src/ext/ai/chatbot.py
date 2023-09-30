@@ -3,7 +3,7 @@ import openai
 import hikari
 import lightbulb
 import pinecone
-from secret import get_secret
+import os
 from tqdm.auto import tqdm
 
 # PARAMETERS
@@ -14,9 +14,9 @@ COMPLETION_MODEL = "gpt-3.5-turbo-16k"
 plugin = lightbulb.Plugin("chatbot")
 
 # OPENAI/PINECONE INIT
-openai.organization = get_secret("OPENAI_ORG")
-openai.api_key = get_secret("OPENAI_API_KEY")
-pinecone.init(api_key=get_secret("PINECONE_API_KEY"), environment=get_secret("PINECONE_ENV"))
+openai.organization = os.getenv("OPENAI_ORG")
+openai.api_key = os.getenv("OPENAI_API_KEY")
+pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment=os.getenv("PINECONE_ENV"))
 
 # REQUIRED FUNCTIONS
 def load(bot):

@@ -20,21 +20,23 @@ async def started_event(event):
     miru.install(plugin.app)
 
 class SelectVersion(miru.View):
-    def __init__(self, player: hikari.Member) -> None:
+    def __init__(self, player: hikari.Member, channel) -> None:
         self.player: hikari.Member = player
+        self.channel = channel
 
     @miru.button(emoji="🤖", style=hikari.ButtonStyle.SUCCESS)
     async def ai(self, select: miru.Button, ctx: miru.Context) -> None:
         embed = hikari.Embed(title="TicTacToe - It's Your Turn", color = NORMAL_COLOR)
-        view = TicTacToeViewAI(self.player)
-        proxy = await ctx.respond(embed=embed, components=view.build())
+        view = TicTacToeViewAI()
+        proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
+        # proxy = await ctx.respond(embed=embed, components=view.build())
         await view.start(await proxy.message())
 
     @miru.button(emoji="⚔️", style=hikari.ButtonStyle.SUCCESS)
     async def vs(self, button: miru.Button, ctx: miru.Context) -> None:
         embed = hikari.Embed(title="TicTacToe - X's Turn", color = NORMAL_COLOR)
         view = TicTacToeViewVS()
-        proxy = await ctx.respond(embed=embed, components=view.build())
+        proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
         await view.start(await proxy.message())
 
     @miru.button(label="Stop", style=hikari.ButtonStyle.DANGER)
@@ -362,5 +364,9 @@ class TicTacToeViewVS(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def tictactoe(ctx: lightbulb.Context) -> None:
     embed = hikari.Embed(title="TicTacToe", description="⚔️ = Player vs Player \n 🤖 = AI vs Player", color = NORMAL_COLOR)
-    view = SelectVersion(ctx.author)
-    await ctx.respond(embed=embed, components=view.build())
+    view = SelectVersion(ctx.author, ctx.channel_id)
+    # works with no params ?
+    resp = await ctx.respond(embed=embed, components=view)
+    await view.start(await resp.message())
+    await view.wait()
+    
