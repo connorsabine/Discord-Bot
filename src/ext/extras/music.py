@@ -9,37 +9,43 @@ from constants import FAILED_COLOR, NORMAL_COLOR, BOT_UID
 plugin = lightbulb.Plugin("music")
 
 # node CONNECT
+# lavalink = lavaplay.Lavalink()
+# node = lavalink.create_node(
+#     # host="node.nicksabine.com",
+#     # port=443,
+#     # password="root",
+#     # ssl=True,
+#     # user_id=0
+# )
+
 lavalink = lavaplay.Lavalink()
 node = lavalink.create_node(
-    host="node.nicksabine.com",
-    port=443,
-    password="root",
-    ssl=True,
-    user_id=BOT_UID
+    host="narco.buses.rocks",
+    port=2269,
+    password="glasshost1984",
+    ssl=False,
+    user_id=0
 )
 
 # LISTENERS
 @plugin.listener(hikari.StartedEvent)
 async def started_event(event):
-    miru.install(plugin.app)
+    # miru.install(plugin.app)
+    node.user_id = plugin.app.get_me().id
     node.connect()
-    node.set_event_loop(asyncio.get_event_loop())
+    # node.set_event_loop(asyncio.get_event_loop())
 
 @plugin.listener(hikari.VoiceStateUpdateEvent)
 async def voice_state_update(event: hikari.VoiceStateUpdateEvent):
-    try:
-        await node.raw_voice_state_update(
-            event.guild_id,
-            event.state.user_id,
-            event.state.session_id,
-            event.state.channel_id,
-        )
-    except:
-        print("Node Not Found.")
+    player = node.create_player(event.guild_id)
+    # player = node.get_player(event.guild_id)
+    await player.raw_voice_state_update(event.state.user_id, event.state.session_id, event.state.channel_id)
 
 @plugin.listener(hikari.VoiceServerUpdateEvent)
 async def voice_server_update(event: hikari.VoiceServerUpdateEvent):
-    await node.raw_voice_server_update(event.guild_id, event.endpoint, event.token)
+    # player = node.get_player(event.guild_id)
+    player = node.create_player(event.guild_id)
+    await player.raw_voice_server_update(event.raw_endpoint, event.token)
 
 
 # REQUIRED FUNCTIONS
@@ -54,7 +60,8 @@ class SelectMenu(miru.View):
 
     @miru.button(emoji="1️⃣")
     async def play1Button(self, button: miru.Button, ctx: miru.ViewContext) -> None:
-        await node.play(GID, result[0])
+        player = node.get_player(GID)
+        await player.play(GID, result[0])
 
     @miru.button(emoji="2️⃣")
     async def play2Button(self, button: miru.Button, ctx: miru.ViewContext) -> None:
@@ -168,13 +175,12 @@ async def queue(ctx: lightbulb.Context) -> None:
         return await ctx.edit_response(embed=embed, components=None)
 
     await plugin.app.update_voice_state(ctx.guild_id, state.channel_id, self_deaf=False)
-    await node.wait_for_connection(ctx.guild_id)
     result = await node.auto_search_tracks(ctx.options.query)
     selectMenu = SelectMenu()
     try:
         selectDescription = ("1️⃣:  "+ str(result[0])+ "\n\n 2️⃣:  "+ str(result[1])+ "\n\n 3️⃣:  "+ str(result[2])+ "\n\n 4️⃣:  "+ str(result[3]))
     except:
-        embed = hikari.Embed(title="Error", description="- No Links\n - Use a Broader Search", color=FAILED_COLOR)
+        embed = hikari.Embed(title="Error", description="- No Songs Found\n - Use a Broader Search", color=FAILED_COLOR)
         return await ctx.respond(embed=embed)
 
     message = await ctx.respond(hikari.Embed(title=(ctx.options.query.upper() + " Search Results:") , description=selectDescription, color = NORMAL_COLOR), components=selectMenu)
@@ -185,7 +191,9 @@ async def queue(ctx: lightbulb.Context) -> None:
     controlsMenu = ControlsMenu()
     await controlsMenu.start(message)
 
-    queue = await node.queue(ctx.guild_id)
+    player = node.get_player(ctx.guild_id)
+    print(player)
+    queue = await player.queue(ctx.guild_id)
     count = 1
     controlsDescription = ""
     for song in queue:

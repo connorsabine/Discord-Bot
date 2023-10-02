@@ -48,4 +48,5 @@ urllib3==2.0.4
 xxhash==3.3.0
 yarl==1.9.2
 hikari-miru==3.2.2
+lavaplay.py
 
