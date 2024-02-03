@@ -19,7 +19,7 @@ def unload(bot):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def help(ctx: lightbulb.Context) -> None:
     embed = hikari.Embed(
-        title="Help Menu", description="All Susiety Supporter Commands and Descriptions", color = NORMAL_COLOR
+        title="Help Menu", description="All Commands and Descriptions", color = NORMAL_COLOR
     )
 
     embed.add_field(name="Ping", value="Responds with Pong!")
@@ -27,10 +27,6 @@ async def help(ctx: lightbulb.Context) -> None:
     embed.add_field(name="Texting AI", value="In a Discord Thread, You can have Conversations with Historical Context. Mention Chatter Bot with a Question in a Thread to Test it Out!")
 
     embed.add_field(name="Fortune", value="Replies with a Random Fortune")
-
-    embed.add_field(name="Quote", value="Displays a Random Quote from Server Quotes List")
-
-    # embed.add_field(name="AddQuote", value="Adds Quote to Server Quotes List")
 
     embed.add_field(name="Color", value="Changes Display Name to Given Color")
 
