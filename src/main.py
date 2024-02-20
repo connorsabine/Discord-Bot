@@ -3,6 +3,7 @@ import hikari
 import lightbulb
 import os
 
+
 # EXTENSIONS
 bot = lightbulb.BotApp(token=os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_MEMBERS)
 bot.load_extensions("ext.ai.chatbot")
@@ -11,11 +12,6 @@ bot.load_extensions("ext.games.tictactoe")
 bot.load_extensions("ext.games.coinflip")
 bot.load_extensions("ext.extras.music")
 
-# bot.load_extensions("db.adduser")
-# bot.load_extensions("ext.ai.images")
-# bot.load_extensions("ext.extras.help")
-# bot.load_extensions("ext.extras.color")
-# bot.load_extensions("ext.games.rpg")
 
 # Ping Message
 @bot.command
