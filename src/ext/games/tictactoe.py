@@ -19,25 +19,6 @@ def unload(bot):
 async def started_event(event):
     miru.install(plugin.app)
 
-class SelectVersion(miru.View):
-    def __init__(self, channel, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.channel: hikari.GuildChannel = channel
-
-    @miru.button(emoji="🤖", style=hikari.ButtonStyle.SUCCESS)
-    async def ai(self, select: miru.Button, ctx: miru.Context) -> None:
-        embed = hikari.Embed(title="-=-=-=- TicTacToe -=-=-=-", description="It's Your Turn", color = NORMAL_COLOR)
-        view = TicTacToeViewAI()
-        proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
-        await view.start(proxy)
-
-    @miru.button(emoji="⚔️", style=hikari.ButtonStyle.SUCCESS)
-    async def vs(self, button: miru.Button, ctx: miru.Context) -> None:
-        embed = hikari.Embed(title="-=-=-=- TicTacToe -=-=-=-", description="It's Your Turn", color = NORMAL_COLOR)
-        view = TicTacToeViewVS()
-        proxy = await plugin.app.rest.create_message(self.channel, embed=embed, components=view.build())
-        await view.start(proxy)
-
 
 # AI
 class TicTacToeButtonAI(miru.Button):
@@ -354,12 +335,21 @@ class TicTacToeViewVS(miru.View):
 
 # COMMANDS
 @plugin.command
+@lightbulb.option(name="opponent", description="Who do you want to play with?", choices=["🤖 - Artificial intelligence", "💪 - Person Vs. Person"])
 @lightbulb.command("tictactoe", "Play TicTacToe!")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def tictactoe(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title="-=-=-=- TicTacToe -=-=-=-", description="🤖 -> Robot vs Player \n ⚔️ -> Player vs Player", color = NORMAL_COLOR)
-    view = SelectVersion(ctx.channel_id)
-    resp = await ctx.respond(embed=embed, components=view)
-    await view.start(await resp.message())
-    await view.wait()
-    await resp.delete()
+    if ctx.options.opponent == "🤖 - Artificial intelligence":
+        embed = hikari.Embed(title="-=-=-=- TicTacToe -=-=-=-", description="It's Your Turn", color = NORMAL_COLOR)
+        view = TicTacToeViewAI()
+        proxy = await ctx.respond(embed=embed, components=view.build())
+        message = await proxy.message()     
+        await view.start(message.id)
+
+    elif ctx.options.opponent == "💪 - Person Vs. Person":
+        embed = hikari.Embed(title="-=-=-=- TicTacToe -=-=-=-", description="It's Your Turn", color = NORMAL_COLOR)
+        view = TicTacToeViewVS()
+        proxy = await ctx.respond(embed=embed, components=view.build())
+        message = await proxy.message()     
+        await view.start(proxy)
+        
