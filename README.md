@@ -1,4 +1,5 @@
 # Discord Bot
+Created by @connorsabine.
 
 # Features
 - Tic-Tac-Toe (player vs player and player vs ai)
